@@ -12,7 +12,7 @@ This module needs a full server restart to hook into WorldEdit properly, for the
 
 ## Config settings
 
-*These settings can be found under `mods.worldedit` node in your arena config file.*
+*These settings can be found under `modules.worldedit` node in your arena config file.*
 
 - autoload - automatically load the arena's BATTLE regions after fight (default: false)
 - autosave - automatically save the arena's BATTLE regions before fight (default: false)
