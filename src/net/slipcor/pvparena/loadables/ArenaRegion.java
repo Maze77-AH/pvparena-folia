@@ -32,6 +32,8 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.scheduler.BukkitTask;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -43,7 +45,7 @@ public class ArenaRegion {
     private Arena arena;
     private String name;
     private RegionType type;
-    private BukkitTask runningTask;
+    private ScheduledTask runningTask;
     private final Set<RegionFlag> flags = new HashSet<>();
     private final Set<RegionProtection> protections = new HashSet<>();
     private final Map<String, Location> playerLocations = new HashMap<>();
@@ -370,17 +372,25 @@ public class ArenaRegion {
     }
 
     public void initTimer() {
-
         if (this.runningTask != null && !this.runningTask.isCancelled()) {
             if (!asList(RegionType.JOIN, RegionType.WATCH, RegionType.LOUNGE).contains(this.type)) {
                 this.runningTask.cancel();
             }
         }
-
+        
+        // Create an instance of the Runnable that contains your desired task logic.
         final RegionRunnable regionRunner = new RegionRunnable(this);
-        final int timer = this.arena.getArenaConfig().getInt(CFG.TIME_REGIONTIMER);
-        this.runningTask = regionRunner.runTaskTimer(PVPArena.instance, timer, timer);
+        
+        // Schedule regionRunner's run() method instead of ArenaRegion's run().
+        this.runningTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(
+            PVPArena.instance,
+            scheduledTask -> regionRunner.run(),
+            20L,
+            20L
+        );
     }
+    
+    
 
     public boolean isInNoWoolSet(final Block block) {
         return NOWOOLS.contains(block.getType());

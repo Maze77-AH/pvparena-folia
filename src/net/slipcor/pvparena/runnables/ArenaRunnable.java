@@ -24,7 +24,6 @@ import java.util.Set;
  * @author slipcor
  * @version v0.10.0.1
  */
-
 public abstract class ArenaRunnable extends BukkitRunnable {
 
     protected static final Map<Integer, String> MESSAGES = new HashMap<>();
@@ -55,7 +54,6 @@ public abstract class ArenaRunnable extends BukkitRunnable {
         this.global = global;
 
         ConfigurationSection section = null;
-
         if (arena == null) {
             if (Language.getConfig() != null) {
                 section = Language.getConfig().getConfigurationSection("time_intervals");
@@ -91,12 +89,15 @@ public abstract class ArenaRunnable extends BukkitRunnable {
                     Integer value = Integer.parseInt(key);
                     MESSAGES.put(value, content.replace("%m", sMinutes).replace("%s", sSeconds));
                 } catch (Exception e) {
-
+                    // Ignore invalid integer keys
                 }
             }
         }
 
-        runTaskTimer(PVPArena.instance, 20L, 20L);
+        // Schedule this runnable using Folia's global region scheduler
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(PVPArena.instance, task -> {
+            this.run();
+        }, 20L, 20L);
     }
 
     protected void spam() {
@@ -122,9 +123,9 @@ public abstract class ArenaRunnable extends BukkitRunnable {
                     }
                     Arena.pmsg(p, message);
                 } catch (final Exception e) {
+                    // Ignore
                 }
             }
-
             return;
         }
         if (arena != null) {
@@ -141,7 +142,6 @@ public abstract class ArenaRunnable extends BukkitRunnable {
             }
             return;
         }
-
         if (Bukkit.getPlayer(sPlayer) != null) {
             final ArenaPlayer aPlayer = ArenaPlayer.parsePlayer(sPlayer);
             if (aPlayer.getArena() == null) {

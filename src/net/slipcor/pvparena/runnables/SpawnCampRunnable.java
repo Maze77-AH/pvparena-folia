@@ -4,6 +4,8 @@ import net.slipcor.pvparena.arena.Arena;
 import net.slipcor.pvparena.core.Config.CFG;
 import org.bukkit.Bukkit;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 /**
  * <pre>Arena Runnable class "SpawnCamp"</pre>
  * <p/>
@@ -34,15 +36,18 @@ public class SpawnCampRunnable implements Runnable {
      */
     @Override
     public void run() {
-        arena.getDebugger().i("SpawnCampRunnable commiting");
+        arena.getDebugger().i("SpawnCampRunnable committing");
         if (arena.isFightInProgress() && arena.getArenaConfig().getBoolean(CFG.PROTECT_PUNISH)) {
             arena.spawnCampPunish();
         } else {
             // deactivate the auto saving task
-            Bukkit.getServer().getScheduler().cancelTask(iID);
-            arena.spawnCampRunnerID = -1;
+            if (arena.spawnCampRunnerTask != null && !arena.spawnCampRunnerTask.isCancelled()) {
+                arena.spawnCampRunnerTask.cancel();
+            }
+            arena.spawnCampRunnerTask = null;
         }
     }
+    
 
     public void setId(final int runID) {
         iID = runID;

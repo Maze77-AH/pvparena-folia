@@ -102,7 +102,7 @@ public class PAA_Setup extends AbstractArenaCommand {
 
                     Remover(final Location loc) {
                         location = loc;
-                        Bukkit.getScheduler().runTaskLater(PVPArena.instance, this, 100L);
+                        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> this.run(), 100L);
                     }
 
                     @Override

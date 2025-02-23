@@ -151,13 +151,10 @@ public final class InventoryManager {
         final Location loc = player.getLocation();
 
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    final ExperienceOrb orb = loc.getWorld().spawn(loc, ExperienceOrb.class);
-                    orb.setExperience(exp);
-                }
-            }, 20L);
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                final ExperienceOrb orb = loc.getWorld().spawn(loc, ExperienceOrb.class);
+                orb.setExperience(exp);
+            }, 20L);            
         } catch (final Exception e) {
 
         }

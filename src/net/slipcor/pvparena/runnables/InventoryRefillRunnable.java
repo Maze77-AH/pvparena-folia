@@ -69,7 +69,7 @@ public class InventoryRefillRunnable implements Runnable {
 
         refill = this.arena.getArenaConfig().getBoolean(CFG.PLAYER_REFILLINVENTORY);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(PVPArena.instance, this, 3L);
+        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> this.run(), 3L);
         this.player = player;
     }
 
@@ -120,14 +120,11 @@ public class InventoryRefillRunnable implements Runnable {
         }
         player.setFireTicks(0);
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    if (player.getFireTicks() > 0) {
-                        player.setFireTicks(0);
-                    }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                if (player.getFireTicks() > 0) {
+                    player.setFireTicks(0);
                 }
-            }, 5L);
+            }, 5L);            
         } catch (Exception e) {
         }
     }

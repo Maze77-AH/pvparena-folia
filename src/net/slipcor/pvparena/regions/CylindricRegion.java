@@ -259,19 +259,12 @@ public class CylindricRegion extends ArenaRegionShape {
             }
         }
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(PVPArena.instance,
-                new Runnable() {
-
-                    @Override
-                    public void run() {
-                        for (final Block b : border) {
-                            player.sendBlockChange(b.getLocation(),
-                                    b.getType().createBlockData());
-                        }
-                        border.clear();
-                    }
-
-                }, 100L);
+        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                for (final Block b : border) {
+                    player.sendBlockChange(b.getLocation(), b.getType().createBlockData());
+                }
+                border.clear();
+            }, 100L);
     }
 
     private Double getRadius() {

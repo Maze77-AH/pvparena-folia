@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <pre>
@@ -146,20 +147,18 @@ public class BattlefieldJoin extends ArenaModule {
         }
 
         class RunLater implements Runnable {
-
-            @Override
-            public void run() {
-                Boolean check = PACheck.handleStart(arena, sender, true);
-                if (check == null || !check) {
-                    Bukkit.getScheduler().runTaskLater(PVPArena.instance, this, 10L);
-                }
+        @Override
+        public void run() {
+            Boolean check = PACheck.handleStart(arena, sender, true);
+            if (check == null || !check) {
+                Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> this.run(), 10L);
             }
-
         }
+}
 
         if (runner == null) {
             runner = new RunLater();
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, runner, 10L);
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> runner.run(), 10L);
         }
     }
 

@@ -41,14 +41,10 @@ public class UpdateChecker {
      * @param player player who joins server
      */
     public void displayMessage(final Player player) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(PVPArena.instance, new Runnable() {
-            @Override
-            public void run() {
-                for(String message : updateMsgList) {
-                    player.sendMessage(Language.parse(Language.MSG.MESSAGES_GENERAL, "PVP Arena", message));
-                }
+        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+            for (String message : updateMsgList) {
+                player.sendMessage(Language.parse(Language.MSG.MESSAGES_GENERAL, "PVP Arena", message));
             }
         }, 20L);
-
-    }
+    }    
 }

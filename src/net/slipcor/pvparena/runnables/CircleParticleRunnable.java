@@ -42,7 +42,7 @@ public class CircleParticleRunnable implements Runnable {
                 final Color dustColor = this.getDustColor(spawn.getLocation().toLocation());
 
                 Bukkit.getWorld(this.arena.getWorld()).spawnParticle(
-                        Particle.REDSTONE,
+                        Particle.DUST,
                         x, y, z,
                         0, // count
                         1, 1, 1, // offsets (colors)
