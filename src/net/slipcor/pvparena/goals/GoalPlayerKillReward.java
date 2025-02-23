@@ -305,8 +305,9 @@ public class GoalPlayerKillReward extends ArenaGoal {
             }
 
         }
-        Bukkit.getScheduler().runTaskLater(PVPArena.instance,
-                new ResetRunnable(player), 4L);
+        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+            new ResetRunnable(player).run();
+        }, 4L);
         final Player killer = player.getKiller();
 
         if (killer == null) {
@@ -348,8 +349,9 @@ public class GoalPlayerKillReward extends ArenaGoal {
             Bukkit.getPluginManager().callEvent(gEvent);
             iLives--;
             this.getLifeMap().put(killer.getName(), iLives);
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance,
-                    new ResetRunnable(killer), 4L);
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                new ResetRunnable(killer).run();
+            }, 4L);
         }
     }
 

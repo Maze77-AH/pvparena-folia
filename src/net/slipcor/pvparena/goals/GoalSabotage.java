@@ -562,7 +562,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
         if (take) {
             final TNTPrimed tnt = (TNTPrimed) Bukkit.getWorld(
                     paBlockLocation.getWorldName())
-                    .spawnEntity(paBlockLocation.toLocation(), EntityType.PRIMED_TNT);
+                    .spawnEntity(paBlockLocation.toLocation(), EntityType.TNT);
 
             getTNTmap().put(this.arena.getTeam(teamName), tnt);
         }
@@ -575,7 +575,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
 
     @EventHandler
     public void onTNTExplode(final EntityExplodeEvent event) {
-        if (event.getEntityType() != EntityType.PRIMED_TNT) {
+        if (event.getEntityType() != EntityType.TNT) {
             return;
         }
 
@@ -590,7 +590,7 @@ public class GoalSabotage extends ArenaGoal implements Listener {
                 World world = event.getEntity().getLocation().getWorld();
                 Location location = event.getEntity().getLocation();
                 tnt.remove();
-                world.spawnParticle(Particle.EXPLOSION_LARGE, location.getX(), location.getY() + 1, location.getZ(), 25);
+                world.spawnParticle(Particle.EXPLOSION, location.getX(), location.getY() + 1, location.getZ(), 25);
                 world.playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 20, 2);
                 break;
             } else {

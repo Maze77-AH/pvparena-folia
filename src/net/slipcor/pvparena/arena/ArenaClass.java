@@ -126,15 +126,12 @@ public final class ArenaClass {
                     final String eggType = item.getType().name().replace("_SPAWN_EGG", "");
 
                     try {
-                        Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable(){
-                            @Override
-                            public void run() {
-                                ArenaPlayer.parsePlayer(player.getName()).getArena().addEntity(
-                                        player, player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(eggType)));
-                            }
+                        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                            ArenaPlayer.parsePlayer(player.getName()).getArena().addEntity(
+                                    player, player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(eggType)));
                         }, 20L);
                     } catch(final IllegalPluginAccessException e) {
-
+                        // handle exception if needed
                     }
                 } else {
                     player.getInventory().addItem(item);
@@ -160,11 +157,12 @@ public final class ArenaClass {
                 final String eggType = item.getType().name().replace("_SPAWN_EGG", "");
 
                 try {
-                    Bukkit.getScheduler().runTaskLater(PVPArena.instance, () ->
-                            ArenaPlayer.parsePlayer(player.getName()).getArena().addEntity(
-                                player, player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(eggType))), 20L);
-                } catch(final IllegalPluginAccessException ignored) {
-
+                    Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                        ArenaPlayer.parsePlayer(player.getName()).getArena().addEntity(
+                                player, player.getWorld().spawnEntity(player.getLocation(), EntityType.valueOf(eggType)));
+                    }, 20L);
+                } catch(final IllegalPluginAccessException e) {
+                    // handle exception if needed
                 }
             } else {
                 player.getInventory().addItem(item);

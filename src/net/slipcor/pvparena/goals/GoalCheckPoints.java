@@ -359,7 +359,9 @@ public class GoalCheckPoints extends ArenaGoal {
 
         final CheckPointsMainRunnable cpMainRunner = new CheckPointsMainRunnable(this.arena, this);
         final int tickInterval = this.arena.getArenaConfig().getInt(CFG.GOAL_CHECKPOINTS_TICKINTERVAL);
-        cpMainRunner.runTaskTimer(PVPArena.instance, tickInterval, tickInterval);
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(PVPArena.instance, task -> {
+            cpMainRunner.run();
+        }, tickInterval, tickInterval);
     }
 
     private void reduceLivesCheckEndAndCommit(final Arena arena, final String player) {

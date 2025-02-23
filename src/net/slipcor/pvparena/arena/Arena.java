@@ -41,6 +41,8 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Vector;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -55,7 +57,6 @@ import static java.util.Optional.ofNullable;
  * <p/>
  * contains >general< arena methods and variables
  *
- * @author slipcor
  * @version v0.10.2
  */
 
@@ -94,7 +95,7 @@ public class Arena {
     public BukkitRunnable endRunner;
     public BukkitRunnable pvpRunner;
     public BukkitRunnable realEndRunner;
-    public BukkitRunnable startRunner;
+    public StartRunnable startRunner;
     public int spawnCampRunnerID = -1;
 
     private boolean gaveRewards;
@@ -1322,9 +1323,10 @@ public class Arena {
                         new RunLater().run();
                     } else {
                         try {
-                            new RunLater().runTaskLater(PVPArena.instance, 2L);
+                            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                                new RunLater().run();
+                            }, 2L);
                         } catch (IllegalStateException ignored) {
-
                         }
                     }
                 }
@@ -1343,7 +1345,7 @@ public class Arena {
             final ArenaPlayer ap = ArenaPlayer.parsePlayer(player.getName());
             if (ap.hasBackupScoreboard()) {
                 try {
-                    Bukkit.getScheduler().runTaskLater(PVPArena.instance, () -> {
+                    Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
                         Scoreboard backupScoreboard = ap.getBackupScoreboard();
                         if (ap.getBackupScoreboardTeam() != null) {
                             backupScoreboard.getTeam(ap.getBackupScoreboardTeam()).addEntry(ap.getName());
@@ -1377,19 +1379,16 @@ public class Arena {
         }
         debug.i("Giving rewards to team " + arenaTeam.getName() + '!');
 
-        Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable(){
-            @Override
-            public void run() {
-                for (final ArenaPlayer ap : players) {
-                    debug.i("Giving rewards to " + ap.get().getName() + '!');
-                    try {
-                        giveRewards(ap.get());
-                    } catch (final Exception e) {
-                        e.printStackTrace();
-                    }
+        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+            for (final ArenaPlayer ap : players) {
+                debug.i("Giving rewards to " + ap.get().getName() + '!');
+                try {
+                    giveRewards(ap.get());
+                } catch (final Exception e) {
+                    e.printStackTrace();
                 }
-                gaveRewards = true;
             }
+            gaveRewards = true;
         }, 1L);
 
     }
@@ -1433,12 +1432,9 @@ public class Arena {
         StatisticsManager.save();
 
         try {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    playedPlayers.clear();
-                    startCount = 0;
-                }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                playedPlayers.clear();
+                startCount = 0;
             }, 30L);
         } catch (final Exception e) {
             // maybe shutting down?
@@ -1567,12 +1563,12 @@ public class Arena {
 
         aPlayer.setTeleporting(true);
         if (cfg.getInt(CFG.TIME_RESETDELAY) > 0 && !force) {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, runLater, cfg.getInt(CFG.TIME_RESETDELAY) * 20);
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> runLater.run(), cfg.getInt(CFG.TIME_RESETDELAY) * 20);
         } else if (PVPArena.instance.isShuttingDown()) {
             runLater.run();
         } else {
             // Waiting two ticks in order to avoid player death bug
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, runLater, 2);
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> runLater.run(), 2);
         }
     }
 
@@ -1590,7 +1586,7 @@ public class Arena {
         }
 
         if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD)) {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, () -> {
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
                 final Scoreboard board = this.getSpecialScoreboard();
 
                 Optional<Team> optBoardTeam = ofNullable(ap.getArenaTeam()).map(team -> board.getTeam(team.getName()));
@@ -1625,7 +1621,7 @@ public class Arena {
         double iHealth = cfg.getInt(CFG.PLAYER_HEALTH, -1);
 
         if (iHealth < 1) {
-            iHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+            iHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
         }
 
         PlayerState.playersetHealth(player, iHealth);
@@ -1663,12 +1659,9 @@ public class Arena {
         ArenaModuleManager.parseRespawn(this, player, team, cause, damager);
         player.setFireTicks(0);
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    if (player.getFireTicks() > 0) {
-                        player.setFireTicks(0);
-                    }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                if (player.getFireTicks() > 0) {
+                    player.setFireTicks(0);
                 }
             }, 5L);
         } catch (Exception e) {
@@ -1948,7 +1941,7 @@ public class Arena {
     public void tpPlayerToCoordNameForJoin(final ArenaPlayer player, final String place, boolean async) {
         Location destination = this.prepareTeleportation(player, place);
         int delay = async ? 2 : 0;
-        Bukkit.getScheduler().runTaskLater(PVPArena.instance, () -> {
+        Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
             teleportPlayer(place, player, destination);
             setupScoreboard(player);
         }, delay);
@@ -2010,25 +2003,19 @@ public class Arena {
                 aPlayer.getStatus() == Status.FIGHT ||
                 aPlayer.getStatus() == Status.LOUNGE) {
 
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    for (final ArenaPlayer player : getFighters()) {
-                        if (player.get() != null) {
-                            player.get().showPlayer(PVPArena.instance, aPlayer.get());
-                        }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                for (final ArenaPlayer player : getFighters()) {
+                    if (player.get() != null) {
+                        player.get().showPlayer(PVPArena.instance, aPlayer.get());
                     }
                 }
             }, 5L);
         }
 
         if (!cfg.getBoolean(CFG.PERMS_FLY)) {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    aPlayer.get().setAllowFlight(false);
-                    aPlayer.get().setFlying(false);
-                }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                aPlayer.get().setAllowFlight(false);
+                aPlayer.get().setFlying(false);
             }, 5L);
         }
     }
@@ -2039,14 +2026,10 @@ public class Arena {
         player.setNoDamageTicks(cfg.getInt(CFG.TIME_TELEPORTPROTECT) * 20);
         if (place.contains("lounge")) {
             getDebugger().i("setting TelePass later!");
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    aPlayer.setTelePass(false);
-                    aPlayer.setTeleporting(false);
-                }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                aPlayer.setTelePass(false);
+                aPlayer.setTeleporting(false);
             }, cfg.getInt(CFG.TIME_TELEPORTPROTECT) * 20);
-
         } else {
             getDebugger().i("setting TelePass now!");
             aPlayer.setTelePass(false);
@@ -2328,7 +2311,7 @@ public class Arena {
 
     public void updateScoreboards() {
         if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD)) {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, () -> {
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
                 final Scoreboard currentScoreboard = this.getSpecialScoreboard();
                 if (this.isFreeForAll()) {
                     for (ArenaPlayer ap : this.getEveryone()) {
@@ -2380,7 +2363,7 @@ public class Arena {
         if (this.getArenaConfig().getBoolean(CFG.USES_SCOREBOARD)) {
             final Scoreboard board = this.getSpecialScoreboard();
 
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, () -> {
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
                 board.getTeam(oldTeam.getName()).removeEntry(player.getName());
 
                 Team sTeam = board.getTeams().stream()
@@ -2452,5 +2435,15 @@ public class Arena {
             }
         }
         return true;
+    }
+
+    public ScheduledTask spawnCampRunnerTask;
+
+    public ScheduledTask getSpawnCampRunnerTask() {
+        return spawnCampRunnerTask;
+    }
+
+    public void setSpawnCampRunnerTask(ScheduledTask task) {
+        this.spawnCampRunnerTask = task;
     }
 }

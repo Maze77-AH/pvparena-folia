@@ -57,7 +57,7 @@ public final class PlayerState {
         this.foodlevel = player.getFoodLevel();
         this.gamemode = player.getGameMode().getValue();
         this.health = player.getHealth();
-        this.maxhealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+        this.maxhealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
 
         this.exhaustion = player.getExhaustion();
         this.experience = player.getExp();
@@ -108,25 +108,25 @@ public final class PlayerState {
         int iHealth = arena.getArenaConfig().getInt(CFG.PLAYER_HEALTH);
 
         if (iHealth < 1) {
-            iHealth = (int) player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+            iHealth = (int) player.getAttribute(Attribute.MAX_HEALTH).getBaseValue();
         }
 
         if (arena.getArenaConfig().getInt(CFG.PLAYER_MAXHEALTH) > 0) {
-             player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(arena.getArenaConfig().getInt(CFG.PLAYER_MAXHEALTH));
+             player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(arena.getArenaConfig().getInt(CFG.PLAYER_MAXHEALTH));
         }
 
-        if (iHealth > player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()) {
-            player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+        if (iHealth > player.getAttribute(Attribute.MAX_HEALTH).getBaseValue()) {
+            player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getBaseValue());
         } else {
             playersetHealth(player, iHealth);
         }
         player.setFireTicks(0);
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, () -> {
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
                 if (player.getFireTicks() > 0) {
                     player.setFireTicks(0);
                 }
-            }, 5L);
+            }, 5L);            
         } catch (Exception e) {
         }
         player.setFallDistance(0);
@@ -178,15 +178,15 @@ public final class PlayerState {
         }
 
         if (aPlayer.getArena().getArenaConfig().getInt(CFG.PLAYER_MAXHEALTH) > 0) {
-            player.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(this.maxhealth);
+            player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(this.maxhealth);
         }
 
-        if (player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue() == this.maxhealth) {
+        if (player.getAttribute(Attribute.MAX_HEALTH).getBaseValue() == this.maxhealth) {
             player.setHealth(Math.min(this.health, this.maxhealth));
         } else {
-            final double newHealth = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue() * this.health / this.maxhealth;
-            if (newHealth > player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue()) {
-                player.setHealth(player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue());
+            final double newHealth = player.getAttribute(Attribute.MAX_HEALTH).getBaseValue() * this.health / this.maxhealth;
+            if (newHealth > player.getAttribute(Attribute.MAX_HEALTH).getBaseValue()) {
+                player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getBaseValue());
             } else {
                 player.setHealth(newHealth);
             }
@@ -217,14 +217,11 @@ public final class PlayerState {
         aPlayer.setTelePass(false);
         player.setFireTicks(0);
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    if (player.getFireTicks() > 0) {
-                        player.setFireTicks(0);
-                    }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                if (player.getFireTicks() > 0) {
+                    player.setFireTicks(0);
                 }
-            }, 5L);
+            }, 5L);            
         } catch (Exception e) {
         }
 
@@ -292,7 +289,9 @@ public final class PlayerState {
             }
         }
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new RunLater(), 5L);
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                new RunLater().run();
+            }, 5L);            
         } catch (Exception e) {
             for(final PotionEffect pe :player.getActivePotionEffects())
             {

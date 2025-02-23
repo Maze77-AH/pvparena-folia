@@ -286,22 +286,15 @@ public class ArenaPlayer {
                 }
             }
 
-            class GiveLater implements Runnable {
-
-                @Override
-                public void run() {
+            try {
+                Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
                     for (final ItemStack item : keepItems) {
                         player.getInventory().addItem(item.clone());
                     }
                     keepItems.clear();
-                }
-
-            }
-
-            try {
-                Bukkit.getScheduler().runTaskLater(PVPArena.instance, new GiveLater(), 60L);
+                }, 60L);
             } catch (final Exception e) {
-
+                // handle exception if needed
             }
         }
         InventoryManager.clearInventory(player);
@@ -333,7 +326,7 @@ public class ArenaPlayer {
             }
             final GiveLater gl = new GiveLater(aPlayer.savedInventory);
             try {
-                Bukkit.getScheduler().runTaskLater(PVPArena.instance, gl, 60L);
+                Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> gl.run(), 60L);
             } catch (final Exception e) {
                 gl.run();
             }
@@ -718,12 +711,9 @@ public class ArenaPlayer {
         aClass = null;
         get().setFireTicks(0);
         try {
-            Bukkit.getScheduler().runTaskLater(PVPArena.instance, new Runnable() {
-                @Override
-                public void run() {
-                    if (get() != null && get().getFireTicks() > 0) {
-                        get().setFireTicks(0);
-                    }
+            Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                if (get() != null && get().getFireTicks() > 0) {
+                    get().setFireTicks(0);
                 }
             }, 5L);
         } catch (Exception e) {

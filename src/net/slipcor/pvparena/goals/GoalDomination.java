@@ -27,6 +27,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 import java.util.*;
 
 /**
@@ -42,7 +44,7 @@ public class GoalDomination extends ArenaGoal {
     private static final int PRIORITY = 8;
     private static final int INTERVAL = 200;
 
-    private BukkitTask circleTask = null;
+    private ScheduledTask circleTask = null;
 
     public GoalDomination() {
         super("Domination");
@@ -286,7 +288,9 @@ public class GoalDomination extends ArenaGoal {
                                     this.arena, false, loc,
                                     this.getFlagMap().get(loc), this);
 
-                            domRunner.runTaskTimer(PVPArena.instance, INTERVAL, INTERVAL);
+                            Bukkit.getGlobalRegionScheduler().runAtFixedRate(PVPArena.instance, task -> {
+                                domRunner.run();
+                            }, INTERVAL, INTERVAL);
 
                             this.getRunnerMap().put(loc, domRunner);
                             this.barStart(loc, contestingMsg, ChatColor.WHITE, checkDistance);
@@ -337,7 +341,9 @@ public class GoalDomination extends ArenaGoal {
                 final DominationRunnable running = new DominationRunnable(this.arena,
                         false, loc, this.getFlagMap().get(loc), this);
 
-                running.runTaskTimer(PVPArena.instance, INTERVAL, INTERVAL);
+                Bukkit.getGlobalRegionScheduler().runAtFixedRate(PVPArena.instance, task -> {
+                    running.run();
+                }, INTERVAL, INTERVAL);
                 this.getRunnerMap().put(loc, running);
                 this.barStart(loc, unclaimingMsg, ChatColor.WHITE, checkDistance);
             } else {
@@ -386,7 +392,9 @@ public class GoalDomination extends ArenaGoal {
                             final DominationRunnable running = new DominationRunnable(
                                     this.arena, true, loc, sName, this);
 
-                            running.runTaskTimer(PVPArena.instance, INTERVAL, INTERVAL);
+                            Bukkit.getGlobalRegionScheduler().runAtFixedRate(PVPArena.instance, task -> {
+                                running.run();
+                            }, INTERVAL, INTERVAL);
                             this.getRunnerMap().put(loc, running);
                             this.barStart(loc, claimingMsg, team.getColor(), checkDistance);
                         }
@@ -677,17 +685,30 @@ public class GoalDomination extends ArenaGoal {
         for (final PABlockLocation spawn : spawns) {
             this.takeFlag(spawn);
         }
-
+    
         final DominationMainRunnable domMainRunner = new DominationMainRunnable(this.arena, this);
         final int tickInterval = this.arena.getArenaConfig().getInt(CFG.GOAL_DOM_TICKINTERVAL);
-        domMainRunner.runTaskTimer(PVPArena.instance, tickInterval, tickInterval);
-
+        // Replace runTaskTimer with runAtFixedRate using Folia's scheduler:
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(
+                PVPArena.instance,
+                scheduledTask -> domMainRunner.run(),
+                tickInterval,  // initial delay (in ticks)
+                tickInterval   // period (in ticks)
+        );
+    
         this.announceOffset = this.arena.getArenaConfig().getInt(CFG.GOAL_DOM_ANNOUNCEOFFSET);
-
-        if(this.arena.getArenaConfig().getBoolean(CFG.GOAL_DOM_PARTICLECIRCLE)) {
-            this.circleTask = Bukkit.getScheduler().runTaskTimer(PVPArena.instance, new CircleParticleRunnable(this.arena, CFG.GOAL_DOM_CLAIMRANGE, this.getFlagMap()), 1L, 1L);
+    
+        if (this.arena.getArenaConfig().getBoolean(CFG.GOAL_DOM_PARTICLECIRCLE)) {
+            // Ensure that circleTask is declared as a ScheduledTask field.
+            this.circleTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(
+                    PVPArena.instance,
+                    scheduledTask -> new CircleParticleRunnable(this.arena, CFG.GOAL_DOM_CLAIMRANGE, this.getFlagMap()).run(),
+                    1L, // initial delay (in ticks)
+                    1L  // period (in ticks)
+            );
         }
     }
+    
 
     private void reduceLivesCheckEndAndCommit(final Arena arena, final String team) {
 

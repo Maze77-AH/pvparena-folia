@@ -432,7 +432,9 @@ public class GoalLiberation extends ArenaGoal {
 
                 String teamName = aPlayer.getArenaTeam().getName();
 
-                Bukkit.getScheduler().runTaskLater(PVPArena.instance, new RespawnRunnable(arena, aPlayer, teamName + "jail"), 1L);
+                Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, task -> {
+                    new RespawnRunnable(arena, aPlayer, teamName + "jail").run();
+                }, 1L);
 
                 this.arena.unKillPlayer(aPlayer.get(), ofNullable(aPlayer.get().getLastDamageCause()).map(EntityDamageEvent::getCause).orElse(null), aPlayer.get().getKiller());
 

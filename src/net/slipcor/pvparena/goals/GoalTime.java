@@ -90,7 +90,9 @@ public class GoalTime extends ArenaGoal {
         }
         if (arena.getFighters().size() < 2) {
             try {
-                Bukkit.getScheduler().runTaskLater(PVPArena.instance, new RunLater(), 1L);
+                Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                    new RunLater().run();
+                }, 1L);                
             } catch (IllegalPluginAccessException ex) {
 
             }
@@ -113,7 +115,9 @@ public class GoalTime extends ArenaGoal {
         }
         if (teams.size() < 2) {
             try {
-                Bukkit.getScheduler().runTaskLater(PVPArena.instance, new RunLater(), 1L);
+                Bukkit.getGlobalRegionScheduler().runDelayed(PVPArena.instance, scheduledTask -> {
+                    new RunLater().run();
+                }, 1L);                
             } catch (IllegalPluginAccessException ex) {
 
             }
