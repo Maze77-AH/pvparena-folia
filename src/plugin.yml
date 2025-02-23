@@ -4,6 +4,7 @@ authors: [ slipcor, Eredrim ]
 prefix: PVP Arena
 main: net.slipcor.pvparena.PVPArena
 version: ${project.version}${buildVersion}
+folia-supported: true
 api-version: 1.13
 softdepend: [ Vault,WorldEdit,WorldGuard,LibsDisguises,DisguiseCraft,CrackShot,Multiverse-Core,MultiWorld,MyWorlds ]
 description: create, manage and enhance PvP arenas
