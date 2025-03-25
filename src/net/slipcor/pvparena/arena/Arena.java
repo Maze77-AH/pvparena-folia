@@ -569,7 +569,7 @@ public class Arena {
 
     private Scoreboard getCommonScoreboard(boolean addTeamEntry) {
         if (this.scoreboard == null) {
-            this.scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+            this.scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
             for (final ArenaTeam team : this.getTeams()) {
                 final Team sbTeam = this.scoreboard.registerNewTeam(team.getName());
                 sbTeam.setPrefix(team.getColor().toString());
@@ -1525,7 +1525,7 @@ public class Arena {
                     if (aPlayer.getSavedLocation() != null) {
                         getDebugger().i("location is fine", player);
                         final PALocation loc = aPlayer.getSavedLocation();
-                        player.teleport(loc.toLocation());
+                        player.teleportAsync(loc.toLocation());
                         player
                                 .setNoDamageTicks(
                                         getArenaConfig().getInt(
@@ -1541,7 +1541,7 @@ public class Arena {
                     if (loc == null) {
                         new Exception("RESET Spawn null: " + getName() + "->" + destination).printStackTrace();
                     } else {
-                        player.teleport(loc.toLocation().add(offset.toVector()));
+                        player.teleportAsync(loc.toLocation().add(offset.toVector()));
                         aPlayer.setTelePass(false);
                         aPlayer.setTeleporting(false);
                     }
@@ -2022,7 +2022,7 @@ public class Arena {
 
     private void teleportPlayer(String place, final ArenaPlayer aPlayer, Location location) {
         Player player = aPlayer.get();
-        player.teleport(location);
+        player.teleportAsync(location);
         player.setNoDamageTicks(cfg.getInt(CFG.TIME_TELEPORTPROTECT) * 20);
         if (place.contains("lounge")) {
             getDebugger().i("setting TelePass later!");
